@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+  <link rel="icon" href="https://imgs.search.brave.com/pHfW509alLs3UBhBTqTpdiauAf3NyhE0UcdRpFN67TY/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jZG4x/Lmljb25maW5kZXIu/Y29tL2RhdGEvaWNv/bnMvZmluYW5jZXMt/ZS1jb21tZXJjZS1h/bmQtc2hvcHBpbmct/MS81MTIvbW9uZXlf/aXBob25lX21vYmls/ZV9waG9uZV9kb2xs/YXItNTEyLnBuZw" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body class="bg-dark">
+
+  <div class="container my-5">
+    <div class="card shadow-lg mx-auto p-4 bg-warning" style="max-width: 400px;border-radius: 30px;">
+      <h3 class="text-center mb-2 fst-italic">💰 Expense Tracker💰</h3>
+      <h5 class="text-center text-muted fst-italic">💲Your Balance💲</h5>
+      <h1 class="text-center fw-bold text-dark" id="balance">$0.00</h1>
+      <div class="row text-center my-4">
+        <div class="col border-end">
+          <h6>Income</h6>
+          <p class="text-success fw-bold">+ $0.00</p>
+        </div>
+        <div class="col">
+          <h6>Expenses</h6>
+          <p class="text-danger fw-bold">- $0.00</p>
+        </div>
+      </div>
+       <h5 class="mt-3">Transaction History</h5>
+      <ul class="list-group mb-4" id="list" style="max-height: 160px; overflow-y: auto;">
+        <li class="list-group-item text-center text-muted">No transactions yet</li>
+      </ul>
+       <h5>Add New Transaction</h5>
+      <form>
+        <div class="mb-3">
+          <input type="text" class="form-control" placeholder="Enter description">
+        </div>
+        <div class="mb-3">
+          <input type="number" class="form-control" placeholder="Amount (+/-)">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Add Transaction</button>
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  const balance = document.getElementById("balance");
+  const list = document.getElementById("list");
+  const form = document.querySelector("form");
+  const descriptionInput = form.querySelector("input[type='text']");
+  const amountInput = form.querySelector("input[type='number']");
+  const incomeEl = document.querySelector(".text-success");
+  const expenseEl = document.querySelector(".text-danger");
+   let transactions = [];
+
+  function updateValues() {
+    const amounts = transactions.map(t => t.amount);
+    const total = amounts.reduce((acc, item) => acc + item, 0).toFixed(2);
+    const income = amounts
+      .filter(val => val > 0)
+      .reduce((acc, val) => acc + val, 0)
+      .toFixed(2);
+    const expense = (
+      amounts
+        .filter(val => val < 0)
+        .reduce((acc, val) => acc + val, 0) * -1
+    ).toFixed(2);
+
+    balance.innerText = `$${total}`;
+    incomeEl.innerText = `+ $${income}`;
+    expenseEl.innerText = `- $${expense}`;
+  }
+ function addTransactionDOM(transaction) {
+    const sign = transaction.amount < 0 ? "-" : "+";
+    const item = document.createElement("li");
+
+    item.classList.add(
+      "list-group-item",
+      "d-flex",
+      "justify-content-between",
+      transaction.amount < 0 ? "text-danger" : "text-success"
+    );
+
+    item.innerHTML = `
+      ${transaction.description}
+      <span>${sign}$${Math.abs(transaction.amount).toFixed(2)}</span>
+    `;
+    item.addEventListener("click", () => {
+      transactions = transactions.filter(t => t.id !== transaction.id);
+      init();
+    });
+
+    list.appendChild(item);
+  }
+
+  function init() {
+    list.innerHTML = "";
+    if (transactions.length === 0) {
+      const emptyMsg = document.createElement("li");
+      emptyMsg.className = "list-group-item text-center text-muted";
+      emptyMsg.innerText = "No transactions yet";
+      list.appendChild(emptyMsg);
+    } else {
+      transactions.forEach(addTransactionDOM);
+    }
+    updateValues();
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const description = descriptionInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+
+    if (description === "" || isNaN(amount)) {
+      alert("Please enter a valid description and amount.");
+      return;
+    }
+
+    const transaction = {
+      id: Date.now(),
+      description,
+      amount
+    };
+
+    transactions.push(transaction);
+    init();
+    descriptionInput.value = "";
+    amountInput.value = "";
+  });
+
+  init();
+  </script>
+</body>
+</html>
